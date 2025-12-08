@@ -58,8 +58,11 @@ func main() {
 	for {
 		input, _ := reader.ReadString('\n')
 		clearLine()
-
 		text := strings.TrimSpace(input)
+		if text == "" {
+			continue
+		}
+
 		user.Message = text
 
 		fmt.Printf("%v: %v\n", user.Username, user.Message)
