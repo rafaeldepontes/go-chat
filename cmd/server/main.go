@@ -8,6 +8,8 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 	"github.com/rafaeldepontes/go-chat/internal/middleware"
+	"github.com/rafaeldepontes/go-chat/internal/tool"
+	"github.com/rafaeldepontes/go-chat/pkg/db/postgres"
 )
 
 const (
@@ -22,7 +24,10 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
-	err := godotenv.Load(".env", ".env.example")
+	envFile := ".env"
+	tool.ChecksEnvFile(&envFile)
+
+	err := godotenv.Load(envFile)
 	if err != nil {
 		fmt.Println("[ERROR] ", err)
 		return
@@ -33,6 +38,7 @@ func main() {
 	handler := middleware.NewHandler(&upgrader)
 
 	go handler.Server.Run()
+	defer postgres.Disconnect()
 
 	fmt.Printf("API running on %v port\n", serverURL)
 	http.ListenAndServe(":"+port, handler)

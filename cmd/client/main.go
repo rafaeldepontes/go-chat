@@ -38,10 +38,15 @@ func read(conn *websocket.Conn) {
 var count = 1
 
 func main() {
-	godotenv.Load(".env", ".env.example")
+	envFile := ".env"
+	tool.ChecksEnvFile(&envFile)
+
+	godotenv.Load(envFile)
 	serverURL := os.Getenv("SERVER_URL")
 
-	var user User
+	var user model.User
+	user.Username = fmt.Sprintf("Anonymous%d", count)
+	count++
 
 	fmt.Print("Username: ")
 	fmt.Scanln(&user.Username)
