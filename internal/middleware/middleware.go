@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -23,7 +24,7 @@ func NewHandler(upgrader *websocket.Upgrader) *handler {
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var conn *websocket.Conn
 	conn, err := h.Upgrader.Upgrade(w, r, nil)
-	if err != nil {
+	if err != nil && !errors.Is(err, http.ErrHijacked) {
 		fmt.Println("Error while trying to establish a connection")
 		fmt.Println("An error occurred:", err)
 		return
