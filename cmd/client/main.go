@@ -9,25 +9,33 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
+	"github.com/rafaeldepontes/go-chat/internal/model"
+	"github.com/rafaeldepontes/go-chat/internal/tool"
 )
-
-type User struct {
-	Username string `json:"username"`
-	Message  string `json:"message"`
-}
 
 func clearLine() {
 	fmt.Print("\x1b[1A\r\x1b[2K")
 }
 
 func read(conn *websocket.Conn) {
-	var user User
+	var users []model.User
 	for {
 		_, message, _ := conn.ReadMessage()
-		json.Unmarshal(message, &user)
-		fmt.Printf("%v: %v\n", user.Username, user.Message)
+
+		if len(message) > 0 {
+			if err := json.Unmarshal(message, &users); err != nil {
+				fmt.Println("ERROR trying to deserialize the JSON:", err)
+				continue
+			}
+
+			for _, user := range users {
+				fmt.Printf("%v: %v\n", user.Username, user.Message)
+			}
+		}
 	}
 }
+
+var count = 1
 
 func main() {
 	godotenv.Load(".env", ".env.example")
