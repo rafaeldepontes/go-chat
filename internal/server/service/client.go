@@ -39,11 +39,16 @@ func (c *Client) Read(s *Server) {
 			return
 		}
 
+		cleanMessage := bytes.Trim(message, "/n")
+
 		s.mux.Lock()
 		c.isSending = true
+		if err = s.UserSvc.Save(cleanMessage...); err != nil {
+			fmt.Println("Error while trying to save the message:", err)
+			return
+		}
 		s.mux.Unlock()
 
-		cleanMessage := bytes.Trim(message, "/n")
 		s.Broadcast <- cleanMessage
 	}
 }
