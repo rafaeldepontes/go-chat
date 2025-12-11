@@ -1,12 +1,19 @@
 package service
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+
+	"github.com/rafaeldepontes/go-chat/internal/user"
+	"github.com/rafaeldepontes/go-chat/internal/user/service"
+)
 
 type Server struct {
 	Clients    map[*Client]bool
 	Register   chan *Client
 	Unregister chan *Client
 	Broadcast  chan []byte
+	UserSvc    user.Service
 	mux        sync.Mutex
 }
 
@@ -16,6 +23,7 @@ func NewService() *Server {
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		Broadcast:  make(chan []byte),
+		UserSvc:    service.NewService(),
 		mux:        sync.Mutex{},
 	}
 }
@@ -37,6 +45,14 @@ func (s *Server) Run() {
 
 		case client := <-s.Register:
 			s.Clients[client] = true
+
+			msg, err := s.UserSvc.FindAll()
+			if err != nil {
+				fmt.Println("An unexpected error while reading the database:", err)
+				continue
+			}
+
+			client.Send <- msg
 
 		case client := <-s.Unregister:
 			delete(s.Clients, client)
