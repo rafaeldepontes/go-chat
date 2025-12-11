@@ -19,6 +19,7 @@ This repository is a hands-on technical demonstration and learning tool built in
 - [Environment variables](#environment-variables)
 - [Quick start](#quick-start)
 - [Usage](#usage-and-behavior-notes)
+- [Message Flow](#message-flow)
 - [Development notes](#development-notes)
 - [License](#license)
 - [Contact](#contact)
@@ -44,6 +45,19 @@ Go-Chat is a small WebSocket API that demonstrates server/client communication p
 
 - Go 1.25 or later
 
+## Database Schema
+
+Use the schema below to initialize the database:
+
+```sql
+create table chat_room (
+	id serial primary key,
+	username varchar(50),
+	message varchar(512),
+	sent_at TIME default now()
+);
+```
+
 ## Environment variables
 
 Copy `.env.example` to `.env` and update values as needed. The project expects at least the following variables:
@@ -51,6 +65,13 @@ Copy `.env.example` to `.env` and update values as needed. The project expects a
 ```bash
 SERVER_PORT="8000"
 SERVER_URL="ws://localhost:8000"
+
+# ----------------------------
+
+POSTGRES_DB="chatroom-db"
+POSTGRES_USER="root"
+POSTGRES_PASSWORD="example"
+DATABASE_URL="postgres://root:example@localhost:5432/postgres"
 ```
 
 ## Quick start
@@ -83,14 +104,21 @@ SERVER_URL="ws://localhost:8000"
 - The server binds to the port defined in `SERVER_PORT` and expects clients to connect to `SERVER_URL`.
 - Clients are lightweight examples meant to demonstrate how to connect, send, and receive messages.
 - Clients run on random local ports and are intended for local testing only.
+- On entry a client should see all the messages sended in that chat.
+- `Cache` stores recent messages to avoid repeated DB hits, it uses TTL.
+
+### Message Flow
+
+1. User sends a message
+2. Server persists it to PostgreSQL
+3. Server updates the in‑memory cache
+4. Server broadcasts message to all connected clients
 
 ## Development notes
 
 - The codebase is intentionally simple so you can experiment with connection handling, message formats, and routing strategies.
 - Ideas to extend the project:
 
-  - Add persistence (message history) using a database `WIP`
-  - Add graceful shutdown and reconnect logic `WIP`
   - Add tests covering core connection and routing logic `WIP`
 
 ## License
