@@ -8,3 +8,10 @@ func ChecksEnvFile(s *string) {
 		*s = ".env.example"
 	}
 }
+
+func FileExists(s string) bool {
+	if _, err := os.Stat(s); err != nil {
+		return false
+	}
+	return true
+}
