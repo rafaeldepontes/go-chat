@@ -32,3 +32,8 @@ go.work.sum
 .vscode/
 
 *dev*.yml
+
+# Certificates and keys
+*.crt
+*.pem
+*.key
