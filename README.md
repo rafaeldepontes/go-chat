@@ -45,19 +45,6 @@ Go-Chat is a small WebSocket API that demonstrates server/client communication p
 
 - Go 1.25 or later
 
-## Database Schema
-
-Use the schema below to initialize the database:
-
-```sql
-create table chat_room (
-	id serial primary key,
-	username varchar(50),
-	message varchar(512),
-	sent_at TIME default now()
-);
-```
-
 ## Environment variables
 
 Copy `.env.example` to `.env` and update values as needed. The project expects at least the following variables:
@@ -88,6 +75,19 @@ SERVER_KEY="server.key"
 SERVER_CERTIFICATE="server.crt"
 ```
 
+## Database Schema
+
+Use the schema below to initialize the database:
+
+```sql
+create table chat_room (
+	id serial primary key,
+	username varchar(50),
+	message varchar(512),
+	sent_at TIME default now()
+);
+```
+
 ## Quick start
 
 1. Clone the repository and enter the folder:
@@ -104,16 +104,28 @@ SERVER_CERTIFICATE="server.crt"
    # or create .env manually and set SERVER_PORT and SERVER_URL
    ```
 
+3. Start PostgreSQL with Docker:
+
+   ```bash
+   docker run --name postgres -e POSTGRES_PASSWORD=example -e POSTGRES_USER=root -e POSTGRES_DB=postgres -p 5432:5432 -d postgres:15
+   # OR
+   docker-compose up -d
+   ```
+
+   Adjust user/password/db name to match your `DATABASE_URL` if necessary.
+
+4. Apply the database schema (run the SQL above) using `psql` or a GUI tool.
+
 ### OPTIONAL
 
-3. If you want to use a HTTPS connection, you need to change the `.env` or the `.env.example` file in such manner:
+5. If you want to use a HTTPS connection, you need to change the `.env` or the `.env.example` file in such manner:
 
    ```bash
    # IS_TLS="false"  # <-- comment this section.
    IS_TLS="true"
    ```
 
-- 3.1 When you enable `TLS`, generating a certificate is mandatory. Run this command in your `"bash" (exclusive to Linux)`:
+- 5.1 When you enable `TLS`, generating a certificate is mandatory. Run this command in your `"bash" (exclusive to Linux)`:
 
   ```bash
   openssl req -x509 -nodes -newkey rsa:2048 -keyout server.key -out server.crt -days 3650 -subj "//CN=localhost" -addext "subjectAltName = DNS:localhost,IP:127.0.0.1,IP:::1"
@@ -121,9 +133,9 @@ SERVER_CERTIFICATE="server.crt"
 
 ---
 
-4. In the client you will be prompted for a username. After connecting you can type messages that will be sent to the server and routed accordingly.
+6. In the client you will be prompted for a username. After connecting you can type messages that will be sent to the server and routed accordingly.
 
-5. Run the server first, then one or more clients:
+7. Run the server first, then one or more clients:
 
    ```bash
    go run cmd/server/main.go   # start server
