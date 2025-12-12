@@ -63,8 +63,17 @@ create table chat_room (
 Copy `.env.example` to `.env` and update values as needed. The project expects at least the following variables:
 
 ```bash
-SERVER_PORT="8000"
-SERVER_URL="ws://localhost:8000"
+# Change this as needed, keep in mind that every request without
+# the certificate and with this variable changed can crash the
+# entire system
+IS_TLS="false"
+# IS_TLS="true"
+
+# ----------------------------
+
+SERVER_PORT="8080"
+SERVER_URL="ws://localhost:8080"
+TLS_SERVER_URL="wss://localhost:8080"
 
 # ----------------------------
 
@@ -72,6 +81,11 @@ POSTGRES_DB="chatroom-db"
 POSTGRES_USER="root"
 POSTGRES_PASSWORD="example"
 DATABASE_URL="postgres://root:example@localhost:5432/postgres"
+
+# ----------------------------
+
+SERVER_KEY="server.key"
+SERVER_CERTIFICATE="server.crt"
 ```
 
 ## Quick start
@@ -90,14 +104,31 @@ DATABASE_URL="postgres://root:example@localhost:5432/postgres"
    # or create .env manually and set SERVER_PORT and SERVER_URL
    ```
 
-3. Run the server first, then one or more clients:
+### OPTIONAL
+
+3. If you want to use a HTTPS connection, you need to change the `.env` or the `.env.example` file in such manner:
+
+   ```bash
+   # IS_TLS="false"  # <-- comment this section.
+   IS_TLS="true"
+   ```
+
+- 3.1 When you enable `TLS`, generating a certificate is mandatory. Run this command in your `"bash" (exclusive to Linux)`:
+
+  ```bash
+  openssl req -x509 -nodes -newkey rsa:2048 -keyout server.key -out server.crt -days 3650 -subj "//CN=localhost" -addext "subjectAltName = DNS:localhost,IP:127.0.0.1,IP:::1"
+  ```
+
+---
+
+4. In the client you will be prompted for a username. After connecting you can type messages that will be sent to the server and routed accordingly.
+
+5. Run the server first, then one or more clients:
 
    ```bash
    go run cmd/server/main.go   # start server
    go run cmd/client/main.go   # start a client (you can run many clients)
    ```
-
-4. In the client you will be prompted for a username. After connecting you can type messages that will be sent to the server and routed accordingly.
 
 ## Usage and behavior notes
 
