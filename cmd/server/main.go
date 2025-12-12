@@ -33,7 +33,12 @@ func main() {
 		return
 	}
 	port := os.Getenv("SERVER_PORT")
-	serverURL := os.Getenv("SERVER_URL")
+
+	var serverURL string
+	serverURL = os.Getenv("SERVER_URL")
+	if os.Getenv("IS_TLS") != "false" {
+		serverURL = os.Getenv("TLS_SERVER_URL")
+	}
 
 	handler := middleware.NewHandler(&upgrader)
 
@@ -41,5 +46,13 @@ func main() {
 	defer postgres.Disconnect()
 
 	fmt.Printf("API running on %v port\n", serverURL)
-	http.ListenAndServe(":"+port, handler)
+	if os.Getenv("IS_TLS") != "false" {
+		if err := http.ListenAndServeTLS(":"+port, os.Getenv("SERVER_CERTIFICATE"), os.Getenv("SERVER_KEY"), handler); err != nil {
+			fmt.Println("Error initializing the api:", err)
+		}
+	} else {
+		if err := http.ListenAndServe(":"+port, handler); err != nil {
+			fmt.Println("Error initializing the api:", err)
+		}
+	}
 }
