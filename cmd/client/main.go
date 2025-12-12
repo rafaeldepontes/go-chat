@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -36,23 +38,45 @@ func read(conn *websocket.Conn) {
 }
 
 var count = 1
+var dialer = websocket.DefaultDialer
 
 func main() {
 	envFile := ".env"
 	tool.ChecksEnvFile(&envFile)
 
 	godotenv.Load(envFile)
-	serverURL := os.Getenv("SERVER_URL")
+
+	var serverURL string
+	serverURL = os.Getenv("SERVER_URL")
+	if os.Getenv("IS_TLS") != "false" {
+		serverURL = os.Getenv("TLS_SERVER_URL")
+	}
+
+	certificate := os.Getenv("SERVER_CERTIFICATE")
 
 	var user model.User
 	user.Username = fmt.Sprintf("Anonymous%d", count)
 	count++
 
-	fmt.Print("Username: ")
-	fmt.Scanln(&user.Username)
-	fmt.Println("-------------------ChatRoom-------------------")
+	tlsConfig := &tls.Config{}
 
-	conn, resp, err := websocket.DefaultDialer.Dial(serverURL, nil)
+	if certificate != "" && tool.FileExists(certificate) && os.Getenv("IS_TLS") != "false" {
+		caPEM, err := os.ReadFile(certificate)
+		if err != nil {
+			fmt.Println("failed to read CA cert:", err)
+			return
+		}
+
+		rootPool := x509.NewCertPool()
+		if !rootPool.AppendCertsFromPEM(caPEM) {
+			fmt.Println("failed to append CA cert to pool")
+			return
+		}
+		tlsConfig.RootCAs = rootPool
+	}
+
+	dialer.TLSClientConfig = tlsConfig
+	conn, resp, err := dialer.Dial(serverURL, nil)
 	if err != nil {
 		if resp != nil {
 			fmt.Printf("Dial error: %v (status: %s)\n", err, resp.Status)
@@ -63,7 +87,10 @@ func main() {
 	}
 	defer conn.Close()
 
+	fmt.Print("Username: ")
+	fmt.Scanln(&user.Username)
 	fmt.Println("Connected!")
+	fmt.Println("-------------------ChatRoom-------------------")
 
 	go read(conn)
 	reader := bufio.NewReader(os.Stdin)
