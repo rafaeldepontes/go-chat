@@ -95,6 +95,7 @@ create table chat_room (
    ```bash
    git clone <repo-url>
    cd go-chat
+   go mod tidy
    ```
 
 2. Copy the example environment file and adjust values:
