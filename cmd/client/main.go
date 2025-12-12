@@ -21,17 +21,20 @@ func clearLine() {
 
 func read(conn *websocket.Conn) {
 	var users []model.User
+	var user model.User
 	for {
 		_, message, _ := conn.ReadMessage()
 
 		if len(message) > 0 {
-			if err := json.Unmarshal(message, &users); err != nil {
+			if err := json.Unmarshal(message, &users); err == nil {
+				for _, user := range users {
+					fmt.Printf("%v: %v\n", user.Username, user.Message)
+				}
+			} else if err := json.Unmarshal(message, &user); err == nil {
+				fmt.Printf("%v: %v\n", user.Username, user.Message)
+			} else {
 				fmt.Println("ERROR trying to deserialize the JSON:", err)
 				continue
-			}
-
-			for _, user := range users {
-				fmt.Printf("%v: %v\n", user.Username, user.Message)
 			}
 		}
 	}
