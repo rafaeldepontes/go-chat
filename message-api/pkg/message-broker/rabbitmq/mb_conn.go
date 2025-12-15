@@ -101,12 +101,12 @@ func GetQueue() *amqp.Queue {
 	return queue
 }
 
-func GetConsumer() <-chan amqp.Delivery {
+func GetConsumer() *<-chan amqp.Delivery {
 	if consumer != nil {
-		return *consumer
+		return consumer
 	}
 	_ = openConsumer()
-	return *consumer
+	return consumer
 }
 
 func CloseConn() error {
