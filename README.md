@@ -8,7 +8,7 @@
 
 ---
 
-This repository is a hands-on technical demonstration and learning tool built in Go that focuses on real-time communication using WebSockets.
+This repository is a hands-on technical demonstration and learning tool built in Go that focuses on real-time communication using WebSockets, a asyncronous saving using RabbitMQ and Postgres for eventual consistency.
 
 ## Table of contents
 
@@ -39,6 +39,7 @@ Go-Chat is a small WebSocket API that demonstrates server/client communication p
 
 - Go 1.25
 - `gorilla/websocket`
+- `rabbitmq/amqp0910-go`
 - `godotenv`
 
 ## Requirements
