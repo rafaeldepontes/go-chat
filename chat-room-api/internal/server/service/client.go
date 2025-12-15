@@ -43,11 +43,11 @@ func (c *Client) Read(s *Server) {
 
 		s.mux.Lock()
 		c.isSending = true
-		if err = s.UserSvc.Save(cleanMessage...); err != nil {
-			fmt.Println("Error while trying to save the message:", err)
+		s.mux.Unlock()
+		if err = s.MsgBroker.Send(cleanMessage); err != nil {
+			fmt.Println("Error while trying to send the message to my Message Broker:", err)
 			return
 		}
-		s.mux.Unlock()
 
 		s.Broadcast <- cleanMessage
 	}

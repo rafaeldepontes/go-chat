@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"sync"
 
+	messagebroker "github.com/rafaeldepontes/go-chat/internal/message-broker"
+	msgBrokerSvc "github.com/rafaeldepontes/go-chat/internal/message-broker/service"
 	"github.com/rafaeldepontes/go-chat/internal/user"
-	"github.com/rafaeldepontes/go-chat/internal/user/service"
+	userSvc "github.com/rafaeldepontes/go-chat/internal/user/service"
 )
 
 type Server struct {
@@ -14,6 +16,7 @@ type Server struct {
 	Unregister chan *Client
 	Broadcast  chan []byte
 	UserSvc    user.Service
+	MsgBroker  messagebroker.MsgBroker
 	mux        sync.Mutex
 }
 
@@ -23,7 +26,8 @@ func NewService() *Server {
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		Broadcast:  make(chan []byte),
-		UserSvc:    service.NewService(),
+		UserSvc:    userSvc.NewService(),
+		MsgBroker:  msgBrokerSvc.NewMsgService(),
 		mux:        sync.Mutex{},
 	}
 }
@@ -46,6 +50,7 @@ func (s *Server) Run() {
 		case client := <-s.Register:
 			s.Clients[client] = true
 
+			// THIS SHOULD USE gRPC instead. UserSvc will be another microservice.
 			msg, err := s.UserSvc.FindAll()
 			if err != nil {
 				fmt.Println("An unexpected error while reading the database:", err)

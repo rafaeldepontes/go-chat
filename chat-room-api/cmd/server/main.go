@@ -9,7 +9,8 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/rafaeldepontes/go-chat/internal/middleware"
 	"github.com/rafaeldepontes/go-chat/internal/tool"
-	"github.com/rafaeldepontes/go-chat/pkg/db/postgres"
+	// "github.com/rafaeldepontes/go-chat/pkg/db/postgres"
+	"github.com/rafaeldepontes/go-chat/pkg/message-broker/rabbitmq"
 )
 
 const (
@@ -43,7 +44,9 @@ func main() {
 	handler := middleware.NewHandler(&upgrader)
 
 	go handler.Server.Run()
-	defer postgres.Disconnect()
+	// defer postgres.Disconnect()
+	defer rabbitmq.CloseConn()
+	defer rabbitmq.CloseChan()
 
 	fmt.Printf("API running on %v port\n", serverURL)
 	if os.Getenv("IS_TLS") != "false" {
