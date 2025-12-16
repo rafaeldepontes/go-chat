@@ -1,11 +1,12 @@
 package service
 
 import (
-	// "fmt"
-	"sync"
+	"fmt"
 
+	"github.com/rafaeldepontes/go-chat/internal/message"
 	messagebroker "github.com/rafaeldepontes/go-chat/internal/message-broker"
 	msgBrokerSvc "github.com/rafaeldepontes/go-chat/internal/message-broker/service"
+	msgSvc "github.com/rafaeldepontes/go-chat/internal/message/service"
 )
 
 type Server struct {
@@ -13,9 +14,8 @@ type Server struct {
 	Register   chan *Client
 	Unregister chan *Client
 	Broadcast  chan []byte
-	// UserSvc    user.Service
-	MsgBroker messagebroker.MsgBroker
-	mux       sync.Mutex
+	MessageSvc message.Service
+	MsgBroker  messagebroker.MsgBroker
 }
 
 func NewService() *Server {
@@ -24,9 +24,8 @@ func NewService() *Server {
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		Broadcast:  make(chan []byte),
-		// UserSvc:    userSvc.NewService(),
-		MsgBroker: msgBrokerSvc.NewMsgService(),
-		mux:       sync.Mutex{},
+		MessageSvc: msgSvc.NewService(),
+		MsgBroker:  msgBrokerSvc.NewMsgService(),
 	}
 }
 
@@ -48,14 +47,13 @@ func (s *Server) Run() {
 		case client := <-s.Register:
 			s.Clients[client] = true
 
-			// THIS SHOULD USE gRPC instead. UserSvc will be another microservice.
-			// msg, err := s.UserSvc.FindAll()
-			// if err != nil {
-			// 	fmt.Println("An unexpected error while reading the database:", err)
-			// 	continue
-			// }
+			msg, err := s.MessageSvc.FindAll()
+			if err != nil {
+				fmt.Println("An unexpected error happened while trying to fetch the chat data...\nError:", err)
+				continue
+			}
 
-			// client.Send <- msg
+			client.Send <- msg
 
 		case client := <-s.Unregister:
 			delete(s.Clients, client)
