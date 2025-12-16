@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -15,9 +14,6 @@ func main() {
 	tool.ChecksEnvFile(&envFile)
 	godotenv.Load(envFile)
 
-	var port string
-	port = ":" + os.Getenv("SERVER_PORT")
-
 	handler := middleware.NewHandler()
 
 	go handler.MessageBroker.Process(handler.UserService.GetUserChannel())
@@ -25,7 +21,7 @@ func main() {
 
 	fmt.Println("Server started running", os.Getenv("SERVER_URL"))
 
-	if err := http.ListenAndServe(port, handler); err != nil {
-		fmt.Println("[ERROR]", err)
+	if err := handler.UserService.Run(); err != nil {
+		fmt.Println("[ERROR] while server initialization...\n[Error]:", err)
 	}
 }
