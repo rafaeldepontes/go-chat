@@ -26,7 +26,7 @@ This repository is a hands-on technical demonstration and learning tool built in
 
 ## Overview
 
-Go-Chat is a small WebSocket API that demonstrates server/client communication patterns in Go. It is intended as a learning project to test connection handling, message routing, and simple client identification.
+Go-Chat is a small WebSocket API that demonstrates server/client communication patterns in Go. It is intended as a learning project to test connection handling, message routing, and simple client identification, RabbitMQ asynchronous calls and gRPC connections and uses.
 
 ## Features
 
@@ -34,12 +34,15 @@ Go-Chat is a small WebSocket API that demonstrates server/client communication p
 - Simple client that connects to the server and exchanges messages
 - Example of environment-based configuration
 - Small, easy-to-read codebase intended for experimentation and extension
+- RabbitMQ for eventual consistent
+- gRPC for server-to-server comunication
 
 ## Technologies
 
 - Go 1.25
 - `gorilla/websocket`
 - `rabbitmq/amqp0910-go`
+- `google.golang.org/grpc`
 - `godotenv`
 
 ## Requirements
@@ -48,8 +51,9 @@ Go-Chat is a small WebSocket API that demonstrates server/client communication p
 
 ## Environment variables
 
-Copy `.env.example` to `.env` and update values as needed. The project expects at least the following variables:
+Copy `.env.example` to `.env` from both folders, `chat-room-api` and `message-api` and update values as needed. The project expects at least the following variables:
 
+## Chat-Room-API:
 ```bash
 # Change this as needed, keep in mind that every request without
 # the certificate and with this variable changed can crash the
@@ -65,6 +69,34 @@ TLS_SERVER_URL="wss://localhost:8080"
 
 # ----------------------------
 
+SERVER_KEY="server.key"
+SERVER_CERTIFICATE="server.crt"
+
+# ----------------------------
+
+RABBITMQ_URL="amqp://user:pass@localhost:5672/"
+
+# ----------------------------
+
+MESSAGE_SERVICE_PORT="localhost:8081"
+```
+
+## Message-API:
+```bash
+# Change this as needed, keep in mind that every request without
+# the certificate and with this variable changed can crash the
+# entire system
+IS_TLS="false"
+# IS_TLS="true"
+
+# ----------------------------
+
+SERVER_PORT="8081"
+SERVER_URL="http://localhost:8081"
+TLS_SERVER_URL="https://localhost:8081"
+
+# ----------------------------
+
 POSTGRES_DB="chatroom-db"
 POSTGRES_USER="root"
 POSTGRES_PASSWORD="example"
@@ -74,6 +106,11 @@ DATABASE_URL="postgres://root:example@localhost:5432/postgres"
 
 SERVER_KEY="server.key"
 SERVER_CERTIFICATE="server.crt"
+
+# ----------------------------
+
+RABBITMQ_URL="amqp://user:pass@localhost:5672/"
+
 ```
 
 ## Database Schema
@@ -95,7 +132,11 @@ create table chat_room (
 
    ```bash
    git clone <repo-url>
-   cd go-chat
+
+   cd ./go-chat/message-api/
+   go mod tidy
+
+   cd ../chat-room-api/
    go mod tidy
    ```
 
@@ -106,15 +147,11 @@ create table chat_room (
    # or create .env manually and set SERVER_PORT and SERVER_URL
    ```
 
-3. Start PostgreSQL with Docker:
+3. Start PostgreSQL and RabbitMQ with Docker:
 
    ```bash
-   docker run --name postgres -e POSTGRES_PASSWORD=example -e POSTGRES_USER=root -e POSTGRES_DB=postgres -p 5432:5432 -d postgres:15
-   # OR
    docker-compose up -d
    ```
-
-   Adjust user/password/db name to match your `DATABASE_URL` if necessary.
 
 4. Apply the database schema (run the SQL above) using `psql` or a GUI tool.
 
@@ -137,11 +174,24 @@ create table chat_room (
 
 6. In the client you will be prompted for a username. After connecting you can type messages that will be sent to the server and routed accordingly.
 
-7. Run the server first, then one or more clients:
+7. To run this application you need to have at least three cli's opened at the same time and both the database and rabbitmq running...
 
+   7.1 Inside the root folder (./), run the following commands:
    ```bash
-   go run cmd/server/main.go   # start server
-   go run cmd/client/main.go   # start a client (you can run many clients)
+   cd ./chat-room-api/
+   go run cmd/server/*.go
+   ```
+
+   7.2 Inside the root folder (./), run the following commands:
+   ```bash
+   cd ./message-api/
+   go run .
+   ```
+
+   7.3 Inside the root folder (./), run the following commands:
+   ```bash
+   cd ./chat-room-api/
+   go run cmd/client/main.go # You can have as many as you want running...
    ```
 
 ## Usage and behavior notes
@@ -150,14 +200,16 @@ create table chat_room (
 - Clients are lightweight examples meant to demonstrate how to connect, send, and receive messages.
 - Clients run on random local ports and are intended for local testing only.
 - On entry a client should see all the messages sended in that chat.
-- `Cache` stores recent messages to avoid repeated DB hits, it uses TTL.
+- `Cache` stores recent messages to avoid repeated DB hits, it uses TTL. `Deprecated on migration, I'm planning to create it again`
 
 ### Message Flow
 
-1. User sends a message
-2. Server persists it to PostgreSQL
-3. Server updates the in‑memory cache
-4. Server broadcasts message to all connected clients
+1. User chooses a name
+2. If there's any message stored in the database, the chat room server will make a gRPC call to the message-api and it should list every single message in the table.
+3. User/Client sends a message
+4. Chat Room Server sends the message to RabbitMQ
+5-1. Server broadcasts message to all connected clients
+5-2. Message API consumes the queue and persists it to PostgreSQL
 
 ## Development notes
 
