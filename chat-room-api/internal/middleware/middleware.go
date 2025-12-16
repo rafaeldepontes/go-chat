@@ -14,9 +14,20 @@ type handler struct {
 	Server   *service.Server
 }
 
-func NewHandler(upgrader *websocket.Upgrader) *handler {
+const (
+	ReadBufferSize  = 4096
+	WriteBufferSize = 4096
+)
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  ReadBufferSize,
+	WriteBufferSize: WriteBufferSize,
+	CheckOrigin:     func(r *http.Request) bool { return true },
+}
+
+func NewHandler() *handler {
 	return &handler{
-		Upgrader: upgrader,
+		Upgrader: &upgrader,
 		Server:   service.NewService(),
 	}
 }
