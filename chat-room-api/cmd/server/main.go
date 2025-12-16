@@ -9,6 +9,7 @@ import (
 	"github.com/rafaeldepontes/go-chat/internal/middleware"
 	"github.com/rafaeldepontes/go-chat/internal/tool"
 
+	messageapi "github.com/rafaeldepontes/go-chat/pkg/gRPC/message-api"
 	"github.com/rafaeldepontes/go-chat/pkg/message-broker/rabbitmq"
 )
 
@@ -31,6 +32,7 @@ func main() {
 	go handler.Server.Run()
 	defer rabbitmq.CloseConn()
 	defer rabbitmq.CloseChan()
+	defer messageapi.CloseConn()
 
 	fmt.Printf("API running on %v port\n", serverURL)
 	run(port, handler)
