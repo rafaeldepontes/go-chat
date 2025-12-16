@@ -7,6 +7,8 @@ import (
 	"github.com/rafaeldepontes/go-chat/internal/model"
 	"github.com/rafaeldepontes/go-chat/internal/user"
 	"github.com/rafaeldepontes/go-chat/pkg/db/postgres"
+
+	pb "github.com/rafaeldepontes/go-chat/shared/message"
 )
 
 type userRepo struct {
@@ -19,9 +21,9 @@ func NewRepository() user.Repository {
 	}
 }
 
-func (repo *userRepo) FindAll() ([]model.User, error) {
+func (repo *userRepo) FindAll() ([]*pb.Message, error) {
 	fmt.Println("Listing all the messages...")
-	var users []model.User
+	var msgs []*pb.Message
 
 	var rows *sql.Rows
 	rows, err := repo.db.Query(`SELECT username, message FROM chat_room cr;`)
@@ -30,11 +32,11 @@ func (repo *userRepo) FindAll() ([]model.User, error) {
 	}
 
 	for rows.Next() {
-		var user model.User
-		if err = rows.Scan(&user.Username, &user.Message); err != nil {
+		var msg pb.Message
+		if err = rows.Scan(&msg.Username, &msg.Message); err != nil {
 			return nil, err
 		}
-		users = append(users, user)
+		msgs = append(msgs, &msg)
 	}
 
 	defer rows.Close()
@@ -43,8 +45,8 @@ func (repo *userRepo) FindAll() ([]model.User, error) {
 		return nil, err
 	}
 
-	fmt.Printf("Found %v messages\n", len(users))
-	return users, nil
+	fmt.Printf("Found %v messages\n", len(msgs))
+	return msgs, nil
 }
 
 func (repo *userRepo) Save(user *model.User) error {
