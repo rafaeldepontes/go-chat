@@ -147,7 +147,7 @@ create table chat_room (
    # or create .env manually and set SERVER_PORT and SERVER_URL
    ```
 
-3. Start PostgreSQL and RabbitMQ with Docker:
+3. In the root folder, starts both PostgreSQL and RabbitMQ with Docker:
 
    ```bash
    docker-compose up -d
