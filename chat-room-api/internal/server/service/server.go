@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/rafaeldepontes/go-chat/internal/message"
 	messagebroker "github.com/rafaeldepontes/go-chat/internal/message-broker"
@@ -16,6 +17,7 @@ type Server struct {
 	Broadcast  chan []byte
 	MessageSvc message.Service
 	MsgBroker  messagebroker.MsgBroker
+	mux        sync.Mutex
 }
 
 func NewService() *Server {
@@ -26,6 +28,7 @@ func NewService() *Server {
 		Broadcast:  make(chan []byte),
 		MessageSvc: msgSvc.NewService(),
 		MsgBroker:  msgBrokerSvc.NewMsgService(),
+		mux:        sync.Mutex{},
 	}
 }
 
