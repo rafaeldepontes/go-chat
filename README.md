@@ -205,11 +205,11 @@ create table chat_room (
 ### Message Flow
 
 1. User chooses a name
-2. If there's any message stored in the database, the chat room server will make a gRPC call to the message-api and it should list every single message in the table.
+2. If there's any message stored in the database, the chat room server will make a gRPC call to the message-api and it should list every single message in the table
 3. User/Client sends a message
 4. Chat Room Server sends the message to RabbitMQ
-5-1. Server broadcasts message to all connected clients
-5-2. Message API consumes the queue and persists it to PostgreSQL
+5. Server broadcasts message to all connected clients
+6. Message API consumes the queue and persists it to PostgreSQL
 
 ## Development notes
 
