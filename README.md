@@ -179,7 +179,7 @@ create table chat_room (
    7.1 Inside the root folder (./), run the following commands:
    ```bash
    cd ./chat-room-api/
-   go run cmd/server/*.go
+   go run cmd/server/main.go
    ```
 
    7.2 Inside the root folder (./), run the following commands:
@@ -191,7 +191,7 @@ create table chat_room (
    7.3 Inside the root folder (./), run the following commands:
    ```bash
    cd ./chat-room-api/
-   go run cmd/client/main.go # You can have as many as you want running...
+   go run cmd/client/*.go # You can have as many as you want running...
    ```
 
 ## Usage and behavior notes
