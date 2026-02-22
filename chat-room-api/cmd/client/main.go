@@ -15,11 +15,13 @@ import (
 var count = 1
 var dialer = websocket.DefaultDialer
 
-func main() {
+func init() {
 	envFile := ".env"
 	tool.ChecksEnvFile(&envFile)
 	godotenv.Load(envFile)
+}
 
+func main() {
 	var serverURL string
 	getServerUrl(&serverURL)
 

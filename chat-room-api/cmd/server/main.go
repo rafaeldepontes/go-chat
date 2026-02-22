@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -13,7 +14,7 @@ import (
 	"github.com/rafaeldepontes/go-chat/pkg/message-broker/rabbitmq"
 )
 
-func main() {
+func init() {
 	envFile := ".env"
 	tool.ChecksEnvFile(&envFile)
 
@@ -22,6 +23,9 @@ func main() {
 		fmt.Println("[ERROR] ", err)
 		return
 	}
+}
+
+func main() {
 	port := os.Getenv("SERVER_PORT")
 
 	var serverURL string
@@ -40,13 +44,14 @@ func main() {
 
 func run(port string, handler http.Handler) {
 	if os.Getenv("IS_TLS") == "false" {
-		if err := http.ListenAndServe(":"+port, handler); err != nil {
-			fmt.Println("Error initializing the api:", err)
-		}
+		log.Fatalln(http.ListenAndServe(":"+port, handler))
 	} else {
-		if err := http.ListenAndServeTLS(":"+port, os.Getenv("SERVER_CERTIFICATE"), os.Getenv("SERVER_KEY"), handler); err != nil {
-			fmt.Println("Error initializing the api:", err)
-		}
+		log.Fatalln(http.ListenAndServeTLS(
+				":"+port,
+				os.Getenv("SERVER_CERTIFICATE"),
+				os.Getenv("SERVER_KEY"),
+				handler,
+			))
 	}
 }
 
